@@ -279,6 +279,13 @@ public class ItemAnimatableListView extends ListView {
                             }
                         }
                     }
+                    //表示没有 Item 需要动画
+                    if(firstAnimation){
+                        if (finalNeedAdjust) {
+                            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), savedPaddingBottoms.pop());
+                            requestLayout();
+                        }
+                    }
                     mItemIdTopMap.clear();
                     return true;
                 }
@@ -583,6 +590,13 @@ public class ItemAnimatableListView extends ListView {
                             });
                             firstAnimation = false;
                         }
+                    }
+                }
+                //表示没有 Item 需要动画
+                if(firstAnimation){
+                    if (finalNeedAdjust) {
+                        setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), savedPaddingBottoms.pop());
+                        requestLayout();
                     }
                 }
                 mItemIdTopMap.clear();

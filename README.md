@@ -1,5 +1,7 @@
 # ItemAnimatableListView
 
+建议直接到我的博客阅读 [ItemAnimatableListView，让你的ListView的Item动起来](http://www.println.net/post/Android-ListView-with-Animation)
+
 # 概要
 
 这个组件可以让你的 ListView/ExpandableListView 的 ItemView 在移除或者添加的时候，整个列表有一个比较自然连贯的动画效果。那我们废话不多说，直接上效果图：

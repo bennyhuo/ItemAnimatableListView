@@ -30,7 +30,7 @@ public class ListViewActivity extends Activity {
         setContentView(R.layout.listview);
 
         ArrayList<DataItem> items = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             items.add(new DataItem(String.valueOf(i)));
         }
         adapter = new ListAdapter(items);

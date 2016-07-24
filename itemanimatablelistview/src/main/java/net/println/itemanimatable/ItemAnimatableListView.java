@@ -141,7 +141,7 @@ public class ItemAnimatableListView extends ListView {
 
     public void animateAdd(final int position, Object item, final ValueAnimator animatorIn){
         /* >benny: [16-07-20 10:28] 我们需要用这个来欺骗 ListView 在布局的时候多添加一个Item. 这个Item其实最后会移除屏幕外 */
-        setClipToPadding(true);
+
         int firstVisiblePosition = getFirstVisiblePosition();
         //if(position >= firstVisiblePosition && position < firstVisiblePosition + getChildCount()) {
             final HashMap<Long, Integer> mItemIdTopMap = new HashMap<Long, Integer>();
@@ -152,36 +152,29 @@ public class ItemAnimatableListView extends ListView {
                 mItemIdTopMap.put(itemId, child.getTop());
                 Log.d(TAG, child.getTop() + "; " + itemId);
             }
-
             boolean needAdjust = false;
-            if (mAdapter.getCount() - firstVisiblePosition >= getChildCount()) {
+            if (mAdapter.getCount() > 0 && (canScrollVertically(-1) || canScrollVertically(1))) {
                 needAdjust = true;
-//            savedPaddingBottoms.push(getPaddingBottom());
-//            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), -getChildAt(0).getHeight() / 2);
 
                 addOnMeasuredListener(new OnMeasuredListener() {
                     @Override
                     public void onMeasured() {
                         removeOnMeasuredListener(this);
                         if (getChildCount() > 0) {
-                            Log.d(TAG, "onMeasured = " + getHeight());
-                            savedPaddingBottoms.push(getListPaddingBottom());
-                            setListPaddingBottom(-getChildAt(0).getHeight());
-                            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), 1);
-//                        savedPaddingBottoms.push(getPaddingBottom());
-//                        setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), -10);
+                            setClipToPadding(true);
+                            savedPaddingBottoms.push(getPaddingBottom());
+                            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), - getChildAt(0).getHeight() - getDividerHeight());
                         }
                     }
                 });
             }
+
             final boolean finalNeedAdjust = needAdjust;
             final ViewTreeObserver observer = getViewTreeObserver();
 
-            Log.d(TAG, "before predraw height = " + getHeight());
             observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                 public boolean onPreDraw() {
                     observer.removeOnPreDrawListener(this);
-                    Log.d(TAG, "predraw height = " + getHeight());
                     int newItemOffset = 0;
                     boolean firstAnimation = true;
                     int firstVisiblePosition = getFirstVisiblePosition();
@@ -216,8 +209,8 @@ public class ItemAnimatableListView extends ListView {
 
                                             /* >benny: [16-07-19 09:36] 我们需要把 paddingBottom恢复, 不然你就看不到最后一个 item 了 */
                                                 if (finalNeedAdjust) {
-//                                                setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), savedPaddingBottoms.pop());
-                                                    setListPaddingBottom(savedPaddingBottoms.pop());
+                                                    setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), savedPaddingBottoms.pop());
+//                                                    setListPaddingBottom(savedPaddingBottoms.pop());
                                                     requestLayout();
                                                 }
                                                 if (listener != null) {
@@ -261,8 +254,8 @@ public class ItemAnimatableListView extends ListView {
 
                                         /* >benny: [16-07-19 09:36] 我们需要把 paddingBottom恢复, 不然你就看不到最后一个 item 了 */
                                             if (finalNeedAdjust) {
-//                                            setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), savedPaddingBottoms.pop());
-                                                setListPaddingBottom(savedPaddingBottoms.pop());
+                                                setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), savedPaddingBottoms.pop());
+//                                                setListPaddingBottom(savedPaddingBottoms.pop());
                                                 requestLayout();
                                             }
 
@@ -383,7 +376,7 @@ public class ItemAnimatableListView extends ListView {
         }
 
         boolean needAdjust = false;
-        if (mAdapter.getCount() - 1 == getLastVisiblePosition() && mAdapter.getCount() > 0) {
+        if (!canScrollVertically(-1) && !canScrollVertically(1) &&  mAdapter.getCount() > 0) {
             needAdjust = true;
 
             /* >benny: [16-07-20 10:25] 首先在这里我们通过设置 paddingBottom, 骗ListView在measure的时候大小保持不变 */
@@ -399,7 +392,7 @@ public class ItemAnimatableListView extends ListView {
                         Log.d(TAG, "onMeasured = " + getHeight());
                         /* >benny: [16-07-20 10:26] 为了让最后一个子View在 paddingBottom 的区域绘制出来,那么就要关闭这个 */
                         setClipToPadding(false);
-                        
+
                         /* >benny: [16-07-20 10:27] 下面这个方法其实也可以, 不过反射还是有风险. */
 //                        try {
 //                            Field field = View.class.getDeclaredField("mPaddingBottom");

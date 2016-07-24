@@ -81,7 +81,7 @@ public class ListAdapter extends AnimatableListAdapter<DataItem> {
         return convertView;
     }
 
-    class ViewHolder{
+    public class ViewHolder{
         ImageView icon;
         TextView content;
 

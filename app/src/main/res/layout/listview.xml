@@ -10,8 +10,8 @@
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
-        android:clipChildren="false"
-        android:clipToPadding="true"/>
+        android:background="#55FF0000"
+        android:paddingBottom="1dp"
+        android:layout_marginBottom="50dp"/>
 
 </RelativeLayout>

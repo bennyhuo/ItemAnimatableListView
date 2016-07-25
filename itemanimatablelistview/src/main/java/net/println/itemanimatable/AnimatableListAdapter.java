@@ -17,7 +17,7 @@ public abstract class AnimatableListAdapter<T> extends BaseAdapter {
     public abstract void addAt(int position, T item);
 
     @Override
-    public boolean hasStableIds() {
+    public final boolean hasStableIds() {
         return true;
     }
 }

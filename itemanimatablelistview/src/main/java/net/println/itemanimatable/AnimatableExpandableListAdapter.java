@@ -25,7 +25,7 @@ public abstract class AnimatableExpandableListAdapter<G, C> extends BaseExpandab
     public abstract void addChildToGroupAt(C child, int groupPosition, int childPosition);
 
     @Override
-    public boolean hasStableIds() {
+    public final boolean hasStableIds() {
         return true;
     }
 }

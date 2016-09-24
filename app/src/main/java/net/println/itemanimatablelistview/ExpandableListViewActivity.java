@@ -68,6 +68,12 @@ public class ExpandableListViewActivity extends Activity {
                         }
                     }, ObjectAnimator.ofFloat(null, "alpha", 1, 0));
                     return true;
+                }else if(!parent.isGroupExpanded(groupPosition)){
+                    listView.animateExpand(groupPosition);
+                    return true;
+                }else if(parent.isGroupExpanded(groupPosition)){
+                    listView.animateCollapse(groupPosition);
+                    return true;
                 }
                 return false;
             }

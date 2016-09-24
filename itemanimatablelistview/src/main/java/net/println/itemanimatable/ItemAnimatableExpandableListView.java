@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnPreDrawListener;
 import android.widget.AbsListView;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
@@ -84,6 +85,7 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
     }
 
     private void init(){
+
     }
 
     @Override
@@ -628,5 +630,102 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
                 return true;
             }
         });
+    }
+
+    public void animateExpand(final int group){
+        ExpandableListAdapter adapter = getExpandableListAdapter();
+        int childCount = adapter.getChildrenCount(group);
+        if(childCount == 0){
+            expandGroup(group);
+            return;
+        }
+
+        final HashMap<Long, Integer> mItemIdTopMap = new HashMap<Long, Integer>();
+        int firstVisiblePosition = getFirstVisiblePosition();
+        for (int i = 0; i < getChildCount(); ++i) {
+            View child = getChildAt(i);
+            int visiblePosition = firstVisiblePosition + i;
+            long itemId = getItemId(visiblePosition);
+            mItemIdTopMap.put(itemId, child.getTop());
+        }
+        expandGroup(group);
+        getViewTreeObserver().addOnPreDrawListener(new OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                int position = getFlatPosition(group, -1);
+                View groupView = getChildAt(position - getFirstVisiblePosition());
+                ExpandableListAdapter adapter = getExpandableListAdapter();
+                int childCount = adapter.getChildrenCount(group);
+                for (int i = 1; i <= childCount; i++) {
+                    View childView = getChildAt(position - getFirstVisiblePosition() + i);
+                    ObjectAnimator.ofFloat(childView, "translationY", groupView.getTop() - childView.getTop(), 0).start();
+                }
+
+                for (int i = position + getFirstVisiblePosition() + childCount + 1; i < getChildCount(); i++) {
+                    long id = getItemId(i);
+                    View childView = getChildAt(i);
+                    Integer oldTop = mItemIdTopMap.get(id);
+                    if(oldTop != null)
+                        ObjectAnimator.ofFloat(childView, "translationY",  oldTop - childView.getTop(), 0).start();
+                }
+
+                getViewTreeObserver().removeOnPreDrawListener(this);
+                return false;
+            }
+        });
+    }
+
+    public void animateCollapse(final int group){
+        ExpandableListAdapter adapter = getExpandableListAdapter();
+        int childCount = adapter.getChildrenCount(group);
+        if(childCount == 0){
+            collapseGroup(group);
+            return;
+        }
+        final int position = getFlatPosition(group, -1);
+        View groupView = getChildAt(position - getFirstVisiblePosition());
+        int offset = 0;
+        boolean shouldAnimate = true;
+        for (int i = 1; i <= childCount; i++) {
+            final View childView = getChildAt(position - getFirstVisiblePosition() + i);
+            Animator animator = ObjectAnimator.ofFloat(childView, "translationY", 0, groupView.getTop() - childView.getTop());
+            if(shouldAnimate){
+                animator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        animation.removeListener(this);
+                        collapseGroup(group);
+                    }
+                });
+                shouldAnimate = false;
+            }
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    animation.removeListener(this);
+                    childView.setTranslationY(0);
+                }
+            });
+            animator.start();
+            if(i == childCount){
+                offset = childView.getBottom() - groupView.getBottom();
+            }
+        }
+
+        for (int i = position - getFirstVisiblePosition() + childCount + 1; i < getChildCount(); i++) {
+            final View childView = getChildAt(i);
+            Animator animator = ObjectAnimator.ofFloat(childView, "translationY", 0, -offset);
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    animation.removeListener(this);
+                    childView.setTranslationY(0);
+                }
+            });
+            animator.start();
+        }
     }
 }

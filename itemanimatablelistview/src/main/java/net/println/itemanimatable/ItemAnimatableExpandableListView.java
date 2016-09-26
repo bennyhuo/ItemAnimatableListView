@@ -634,8 +634,9 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
             expandGroup(group);
             return;
         }
-
-        final HashMap<Long, Integer> mItemIdTopMap = new HashMap<Long, Integer>();
+        final boolean isEnabled = isEnabled();
+        setEnabled(false);
+        final HashMap<Long, Integer> mItemIdTopMap = new HashMap<>();
         int firstVisiblePosition = getFirstVisiblePosition();
         for (int i = 0; i < getChildCount(); ++i) {
             View child = getChildAt(i);
@@ -651,11 +652,23 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
                 View groupView = getChildAt(position - getFirstVisiblePosition());
                 ExpandableListAdapter adapter = getExpandableListAdapter();
                 int childCount = adapter.getChildrenCount(group);
+                boolean shouldAddCallback = true;
                 for (int i = 1; i <= childCount; i++) {
                     int childIndex = position - getFirstVisiblePosition() + i;
                     if(childIndex == getChildCount()) break;
                     View childView = getChildAt(childIndex);
-                    ObjectAnimator.ofFloat(childView, "translationY", groupView.getTop() - childView.getTop(), 0).start();
+                    Animator animator = ObjectAnimator.ofFloat(childView, "translationY", groupView.getTop() - childView.getTop(), 0);
+                    if(shouldAddCallback){
+                        shouldAddCallback = false;
+                        animator.addListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                setEnabled(isEnabled);
+                            }
+                        });
+                    }
+                    animator.start();
                 }
 
                 for (int i = position + getFirstVisiblePosition() + childCount + 1; i < getChildCount(); i++) {
@@ -679,25 +692,28 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
             collapseGroup(group);
             return;
         }
+        final boolean isEnabled = isEnabled();
+        setEnabled(false);
         final int position = getFlatPosition(group, -1);
         View groupView = getChildAt(position - getFirstVisiblePosition());
         int offset = 0;
-        boolean shouldAnimate = true;
+        boolean shouldAddCallback = true;
         for (int i = 1; i <= childCount; i++) {
             int childIndex = position - getFirstVisiblePosition() + i;
             if(childIndex == getChildCount()) break;
             final View childView = getChildAt(childIndex);
             Animator animator = ObjectAnimator.ofFloat(childView, "translationY", 0, groupView.getTop() - childView.getTop());
-            if(shouldAnimate){
+            if(shouldAddCallback){
                 animator.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
                         animation.removeListener(this);
+                        setEnabled(isEnabled);
                         collapseGroup(group);
                     }
                 });
-                shouldAnimate = false;
+                shouldAddCallback = false;
             }
             animator.addListener(new AnimatorListenerAdapter() {
                 @Override

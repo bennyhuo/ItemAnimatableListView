@@ -79,11 +79,6 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
         init();
     }
 
-    public ItemAnimatableExpandableListView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        init();
-    }
-
     private void init(){
 
     }
@@ -657,7 +652,9 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
                 ExpandableListAdapter adapter = getExpandableListAdapter();
                 int childCount = adapter.getChildrenCount(group);
                 for (int i = 1; i <= childCount; i++) {
-                    View childView = getChildAt(position - getFirstVisiblePosition() + i);
+                    int childIndex = position - getFirstVisiblePosition() + i;
+                    if(childIndex == getChildCount()) break;
+                    View childView = getChildAt(childIndex);
                     ObjectAnimator.ofFloat(childView, "translationY", groupView.getTop() - childView.getTop(), 0).start();
                 }
 
@@ -687,7 +684,9 @@ public class ItemAnimatableExpandableListView extends ExpandableListView {
         int offset = 0;
         boolean shouldAnimate = true;
         for (int i = 1; i <= childCount; i++) {
-            final View childView = getChildAt(position - getFirstVisiblePosition() + i);
+            int childIndex = position - getFirstVisiblePosition() + i;
+            if(childIndex == getChildCount()) break;
+            final View childView = getChildAt(childIndex);
             Animator animator = ObjectAnimator.ofFloat(childView, "translationY", 0, groupView.getTop() - childView.getTop());
             if(shouldAnimate){
                 animator.addListener(new AnimatorListenerAdapter() {
